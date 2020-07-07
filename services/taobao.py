@@ -40,6 +40,7 @@ class taobao():
     def __set_options():
         options = Options()
         # # 设置开发者模式
+        options.binary_location = ""
         options.add_experimental_option("excludeSwitches", ['enable-automation'])
 
         return options
@@ -63,17 +64,19 @@ class taobao():
     def login(self):
         self.driver.get("https://login.taobao.com/member/login.jhtml")
         try:
+            # 寻找微博登录按钮
             self.driver.find_element_by_class_name("weibo-login").click()
         except Exception as e:
             self.driver.find_element_by_id("J_Quick2Static").click()
             self.driver.find_element_by_class_name("weibo-login").click()
-
+        #输入用户名密码
         username = self.driver.find_element_by_name("username")
         username.send_keys(config.weibo["username"])
-        time.sleep(1)
+        time.sleep(5)
         password = self.driver.find_element_by_name("password")
         password.send_keys(config.weibo["password"])
         time.sleep(1)
+        # 判断是否需要验证码，如果需要, 通过第三方平台检验验证码信息
         captcha = self.get_captcha()
         if captcha is not None:
             captcha_input = self.driver.find_element_by_name("verifycode")
@@ -82,11 +85,24 @@ class taobao():
             client.PostPic(captcha, 1902)
             captcha_input.send_keys(client.pic_str)
         self.driver.find_element_by_class_name("W_btn_g").click()
+        # 通过获取淘宝的用户名开判断登录是否成功
+        try:
+            nickname = self.__get_nickname()
+            print(nickname)
+        except:
+            captcha = self.get_captcha()
+            if captcha is not None:
+                captcha_input = self.driver.find_element_by_name("verifycode")
+                client = chaojiying.Chaojiying(config.chaojiying["username"], config.chaojiying["password"],
+                                               config.chaojiying["soft_id"])
+                client.PostPic(captcha, 1902)
+                captcha_input.send_keys(client.pic_str)
+            self.driver.find_element_by_class_name("W_btn_g").click()
+            nickname = self.__get_nickname()
+            if nickname is None:
+                print("login failed")
+                return
 
-        nickname = self.__get_nickname()
-        if nickname is None:
-            print("登录淘宝失败")
-            return
         # 存储cookies
         self.cookie = self.driver.get_cookies()
         self.serialization_cookies()
@@ -217,7 +233,8 @@ class taobao():
                 self.login()
                 self.driver.get(href)
         except Exception as e:
-            print(e)
+            # print(e)
+            print()
 
         bs4 = BeautifulSoup(self.driver.page_source, features="html.parser")
         basic = bs4.select_one(".tb-property")

@@ -14,7 +14,7 @@ try:
     # 实例化DB
     database = config.database
     schema = "mysql://%s:%s@%s/%s?charset=utf8" % (database["user"], database["password"], database["host"], database["db"])
-    engine = create_engine(schema, encoding="utf8", echo=False)
+    engine = create_engine(schema, encoding="utf8", echo=True)
     Session = sessionmaker(bind=engine)
     session = Session()
 

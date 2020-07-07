@@ -80,13 +80,18 @@ class sn:
         return parameter
 
     def get_price(self, element="span.mainprice"):
-        home = self.get_home_page()
-        price_box = home.select_one(element)
-        price = 0
-        if price_box is not None:
-            price = price_box.get_text()
-            price = float(helper.get_number(price))
-        return price
+        try:
+            home = self.get_home_page()
+            price_box = home.select_one(element)
+            price = 0
+            if price_box is not None:
+                price = price_box.get_text()
+                price = float(helper.get_number(price))
+            return price
+        except Exception as e:
+            print("get the [%s] goods failed" % self.driver.current_url)
+            print(e)
+            return 0
 
     def get_origin_price(self):
         return self.get_price(".small-price")
